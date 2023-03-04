@@ -1,0 +1,181 @@
+SaviorAuraEffect
+
+    Events
+
+        Game - damageEventTrigger becomes Equal to 1.00
+
+    Conditions
+
+        (Level of SA_A_ActiveAbility for target) Greater than 0
+
+        (source belongs to an enemy of (Owner of target)) Equal to True
+
+    Actions
+
+        -------- - --------
+
+        -------- Set the attacked unit --------
+
+        -------- - --------
+
+        Set SA_U_AtkUnit = target
+
+        -------- - --------
+
+        -------- Determine the owner of the unit --------
+
+        -------- - --------
+
+        Set SA_PL_Player = (Owner of SA_U_AtkUnit)
+
+        -------- - --------
+
+        -------- set the level of the ability into a variable --------
+
+        -------- - --------
+
+        Set SA_I_Level = (Level of SA_A_ActiveAbility for SA_U_AtkUnit)
+
+        -------- - --------
+
+        -------- Checks on what value should be applied on the aura's healing effect --------
+
+        -------- - --------
+
+        If (All Conditions are True) then do (Then Actions) else do (Else Actions)
+
+            If - Conditions
+
+                SA_B_UseStat Equal to True
+
+            Then - Actions
+
+                -------- - --------
+
+                -------- if this is applied then the heal value is equal to a certain percentage of the attacked unit's strength --------
+
+                -------- - --------
+
+                Set SA_R_HealAmt = ((Real((Strength of SA_U_AtkUnit (Include bonuses)))) x (SA_R_Heal[SA_I_Level] x 0.01))
+
+            Else - Actions
+
+                -------- - --------
+
+                -------- if this is applied, then the heal amount is equal to the predefined value in the trigger configuration --------
+
+                -------- - --------
+
+                Set SA_R_HealAmt = SA_R_Heal[SA_I_Level]
+
+        -------- - --------
+
+        -------- sets the position of the attacked units into a variable --------
+
+        -------- - --------
+
+        Set SA_P_AtkPos = (Position of SA_U_AtkUnit)
+
+        -------- - --------
+
+        -------- selects the valid units that can be healed --------
+
+        -------- - --------
+
+        Set SA_UG_UnitGroup = (Units within SA_R_AoE[SA_I_Level] of SA_P_AtkPos)
+
+        -------- - --------
+
+        -------- heals the picked units --------
+
+        -------- - --------
+
+        Unit Group - Pick every unit in SA_UG_UnitGroup and do (Actions)
+
+            Loop - Actions
+
+                Set SA_U_Picked = (Picked unit)
+
+                If (All Conditions are True) then do (Then Actions) else do (Else Actions)
+
+                    If - Conditions
+
+                        (SA_U_Picked is dead) Equal to False
+
+                        (SA_U_Picked belongs to an ally of SA_PL_Player) Equal to True
+
+                        (SA_U_Picked is A structure) Equal to False
+
+                        (SA_U_Picked is Magic Immune) Equal to False
+
+                        (SA_U_Picked has buff SA_BF_Buff) Equal to True
+
+                        (Level of SA_A_PassiveAbility for SA_U_Picked) Less than 1
+
+                    Then - Actions
+
+                        -------- - --------
+
+                        -------- sets the picked unit into a variable --------
+
+                        -------- its ok to recycle this variable isn't it? --------
+
+                        -------- - --------
+
+                        -------- - --------
+
+                        -------- Heals the picked unit --------
+
+                        -------- - --------
+
+                        Unit - Set life of SA_U_Picked to ((Life of SA_U_Picked) + SA_R_HealAmt)
+
+                        -------- - --------
+
+                        -------- Add some visuals --------
+
+                        -------- - --------
+
+                        Special Effect - Create a special effect attached to the SA_S_Attach of SA_U_Picked using SA_S_SFX
+
+                        -------- - --------
+
+                        -------- destroy visuals to prevent leaks --------
+
+                        -------- - --------
+
+                        Special Effect - Destroy (Last created special effect)
+
+                    Else - Actions
+
+                Set SA_U_Picked = No unit
+
+        -------- - --------
+
+        -------- Clean up --------
+
+        -------- - --------
+
+        -------- SA_UG_UnitGroup.Clear(); --------
+
+        -------- Clear the unit group --------
+
+        -------- - --------
+
+        Unit Group - Remove all units from SA_UG_UnitGroup
+
+        -------- - --------
+
+        -------- Destroy the instance of the unit group --------
+
+        -------- - --------
+
+        Custom script:   call DestroyGroup(udg_SA_UG_UnitGroup)
+
+        -------- - --------
+
+        -------- Destroy the point --------
+
+        -------- - --------
+
+        Custom script:   call RemoveLocation(udg_SA_P_AtkPos)
